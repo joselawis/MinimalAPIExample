@@ -69,6 +69,25 @@ namespace MinimalAPI.RouteGroups
                 }
             );
 
+            // DELETE /products/{id}
+            group.MapDelete(
+                "/{id:int}",
+                async (HttpContext context, int id) =>
+                {
+                    var productFromCollection = products
+                        .Where(temp => temp.Id == id)
+                        .FirstOrDefault();
+                    if (productFromCollection == null)
+                    {
+                        context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                        await context.Response.WriteAsync("Incorrect Product Id");
+                        return;
+                    }
+                    products.Remove(productFromCollection);
+                    await context.Response.WriteAsync("Product Deleted");
+                }
+            );
+
             return group;
         }
     }
