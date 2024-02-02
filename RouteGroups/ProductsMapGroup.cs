@@ -18,25 +18,23 @@ namespace MinimalAPI.RouteGroups
             // GET /products
             group.MapGet(
                 "/",
-                async (HttpContext context) =>
+                (HttpContext context) =>
                 {
-                    await context.Response.WriteAsync(JsonSerializer.Serialize(products));
+                    return Results.Json(products);
                 }
             );
 
             // GET /products/{Id}
             group.MapGet(
                 "/{id:int}",
-                async (HttpContext context, int id) =>
+                (HttpContext context, int id) =>
                 {
                     var product = products.Where(temp => temp.Id == id).FirstOrDefault();
                     if (product == null)
                     {
-                        context.Response.StatusCode = StatusCodes.Status400BadRequest;
-                        await context.Response.WriteAsync("Incorrect Product Id");
-                        return;
+                        return Results.BadRequest(new { error = "Incorrect Product Id" });
                     }
-                    await context.Response.WriteAsync(JsonSerializer.Serialize(product));
+                    return Results.Json(product);
                 }
             );
 
