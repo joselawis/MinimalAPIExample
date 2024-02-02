@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.VisualBasic;
 using MinimalAPI.Models;
 
 namespace MinimalAPI.RouteGroups
@@ -12,6 +13,9 @@ namespace MinimalAPI.RouteGroups
                 new() { Id = 1, ProductName = "Smartphone" },
                 new() { Id = 2, ProductName = "SmartTv" }
             };
+
+        static readonly Dictionary<string, string[]> validationDictionary =
+            new() { { "id", new string[] { "Incorrect Product Id" } } };
 
         public static RouteGroupBuilder ProductsAPI(this RouteGroupBuilder group)
         {
@@ -32,7 +36,7 @@ namespace MinimalAPI.RouteGroups
                     var product = products.Where(temp => temp.Id == id).FirstOrDefault();
                     if (product == null)
                     {
-                        return Results.BadRequest(new { error = "Incorrect Product Id" });
+                        return Results.ValidationProblem(validationDictionary);
                     }
                     return Results.Json(product);
                 }
@@ -58,7 +62,7 @@ namespace MinimalAPI.RouteGroups
                         .FirstOrDefault();
                     if (productFromCollection == null)
                     {
-                        return Results.BadRequest(new { error = "Incorrect Product Id" });
+                        return Results.ValidationProblem(validationDictionary);
                     }
                     productFromCollection.ProductName = product.ProductName;
                     return Results.Ok(new { message = "Product Updated" });
@@ -75,7 +79,7 @@ namespace MinimalAPI.RouteGroups
                         .FirstOrDefault();
                     if (productFromCollection == null)
                     {
-                        return Results.BadRequest(new { error = "Incorrect Product Id" });
+                        return Results.ValidationProblem(validationDictionary);
                     }
                     products.Remove(productFromCollection);
                     return Results.Ok(new { message = "Product Deleted" });
