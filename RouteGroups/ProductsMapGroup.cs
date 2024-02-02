@@ -1,7 +1,5 @@
-using System.ComponentModel.DataAnnotations;
-using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.VisualBasic;
+using MinimalAPI.EndpointFilters;
 using MinimalAPI.Models;
 
 namespace MinimalAPI.RouteGroups
@@ -17,36 +15,6 @@ namespace MinimalAPI.RouteGroups
 
         static readonly Dictionary<string, string[]> validationDictionary =
             new() { { "id", new string[] { "Incorrect Product Id" } } };
-
-        static readonly Func<
-            EndpointFilterInvocationContext,
-            EndpointFilterDelegate,
-            ValueTask<object?>
-        > routeHandlerFilter = async (
-            EndpointFilterInvocationContext context,
-            EndpointFilterDelegate next
-        ) =>
-        {
-            // Before logic
-            var product = context.Arguments.OfType<Product>().FirstOrDefault();
-            if (product == null)
-            {
-                return Results.BadRequest("Product details are not found in the request");
-            }
-            var validationContext = new ValidationContext(product);
-            var errors = new List<ValidationResult>();
-            var isValid = Validator.TryValidateObject(product, validationContext, errors, true);
-            if (!isValid)
-            {
-                return Results.BadRequest(new { errors = errors.FirstOrDefault()?.ErrorMessage });
-            }
-
-            var result = await next(context); // Calls subsequent filter or endpoint
-
-            // After logic
-
-            return result;
-        };
 
         public static RouteGroupBuilder ProductsAPI(this RouteGroupBuilder group)
         {
@@ -83,7 +51,7 @@ namespace MinimalAPI.RouteGroups
                         return Results.Ok(new { message = "Product Added" });
                     }
                 )
-                .AddEndpointFilter(routeHandlerFilter);
+                .AddEndpointFilter<MyCustomEndpointFilter>();
 
             // PUT /products/{id}
             group.MapPut(
