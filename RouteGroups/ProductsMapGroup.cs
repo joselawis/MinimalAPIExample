@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualBasic;
@@ -16,6 +17,36 @@ namespace MinimalAPI.RouteGroups
 
         static readonly Dictionary<string, string[]> validationDictionary =
             new() { { "id", new string[] { "Incorrect Product Id" } } };
+
+        static readonly Func<
+            EndpointFilterInvocationContext,
+            EndpointFilterDelegate,
+            ValueTask<object?>
+        > routeHandlerFilter = async (
+            EndpointFilterInvocationContext context,
+            EndpointFilterDelegate next
+        ) =>
+        {
+            // Before logic
+            var product = context.Arguments.OfType<Product>().FirstOrDefault();
+            if (product == null)
+            {
+                return Results.BadRequest("Product details are not found in the request");
+            }
+            var validationContext = new ValidationContext(product);
+            var errors = new List<ValidationResult>();
+            var isValid = Validator.TryValidateObject(product, validationContext, errors, true);
+            if (!isValid)
+            {
+                return Results.BadRequest(new { errors = errors.FirstOrDefault()?.ErrorMessage });
+            }
+
+            var result = await next(context); // Calls subsequent filter or endpoint
+
+            // After logic
+
+            return result;
+        };
 
         public static RouteGroupBuilder ProductsAPI(this RouteGroupBuilder group)
         {
@@ -43,14 +74,16 @@ namespace MinimalAPI.RouteGroups
             );
 
             // POST /products
-            group.MapPost(
-                "/",
-                (HttpContext context, Product product) =>
-                {
-                    products.Add(product);
-                    return Results.Ok(new { message = "Product Added" });
-                }
-            );
+            group
+                .MapPost(
+                    "/",
+                    (HttpContext context, Product product) =>
+                    {
+                        products.Add(product);
+                        return Results.Ok(new { message = "Product Added" });
+                    }
+                )
+                .AddEndpointFilter(routeHandlerFilter);
 
             // PUT /products/{id}
             group.MapPut(
