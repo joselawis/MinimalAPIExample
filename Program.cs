@@ -19,6 +19,23 @@ app.MapGet(
     }
 );
 
+// GET /products/{Id}
+app.MapGet(
+    "/products/{id}",
+    async (HttpContext context, int id) =>
+    {
+        var product = products.Where(temp => temp.Id == id).FirstOrDefault();
+        if (product == null)
+        {
+            context.Response.StatusCode = StatusCodes.Status400BadRequest;
+            await context.Response.WriteAsync("Incorrect Product Id");
+            return;
+        }
+        await context.Response.WriteAsync(product.ToString());
+    }
+);
+
+// POST /products
 app.MapPost(
     "/products",
     async (HttpContext context, Product product) =>
