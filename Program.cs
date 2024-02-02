@@ -21,7 +21,7 @@ app.MapGet(
 
 // GET /products/{Id}
 app.MapGet(
-    "/products/{id}",
+    "/products/{id:int}",
     async (HttpContext context, int id) =>
     {
         var product = products.Where(temp => temp.Id == id).FirstOrDefault();
