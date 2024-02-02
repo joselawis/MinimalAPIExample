@@ -1,3 +1,4 @@
+using System.Text.Json;
 using MinimalAPI.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,8 +15,7 @@ app.MapGet(
     "/products",
     async (HttpContext context) =>
     {
-        var content = string.Join("\n", products.Select(temp => temp.ToString()));
-        await context.Response.WriteAsync(content);
+        await context.Response.WriteAsync(JsonSerializer.Serialize(products));
     }
 );
 
@@ -31,7 +31,7 @@ app.MapGet(
             await context.Response.WriteAsync("Incorrect Product Id");
             return;
         }
-        await context.Response.WriteAsync(product.ToString());
+        await context.Response.WriteAsync(JsonSerializer.Serialize(product));
     }
 );
 
