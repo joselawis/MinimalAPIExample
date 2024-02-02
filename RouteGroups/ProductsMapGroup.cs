@@ -43,48 +43,44 @@ namespace MinimalAPI.RouteGroups
             // POST /products
             group.MapPost(
                 "/",
-                async (HttpContext context, Product product) =>
+                (HttpContext context, Product product) =>
                 {
                     products.Add(product);
-                    await context.Response.WriteAsync("Product added");
+                    return Results.Ok(new { message = "Product Added" });
                 }
             );
 
             // PUT /products/{id}
             group.MapPut(
                 "/{id:int}",
-                async (HttpContext context, int id, [FromBody] Product product) =>
+                (HttpContext context, int id, [FromBody] Product product) =>
                 {
                     var productFromCollection = products
                         .Where(temp => temp.Id == id)
                         .FirstOrDefault();
                     if (productFromCollection == null)
                     {
-                        context.Response.StatusCode = StatusCodes.Status400BadRequest;
-                        await context.Response.WriteAsync("Incorrect Product Id");
-                        return;
+                        return Results.BadRequest(new { error = "Incorrect Product Id" });
                     }
                     productFromCollection.ProductName = product.ProductName;
-                    await context.Response.WriteAsync("Product Updated");
+                    return Results.Ok(new { message = "Product Updated" });
                 }
             );
 
             // DELETE /products/{id}
             group.MapDelete(
                 "/{id:int}",
-                async (HttpContext context, int id) =>
+                (HttpContext context, int id) =>
                 {
                     var productFromCollection = products
                         .Where(temp => temp.Id == id)
                         .FirstOrDefault();
                     if (productFromCollection == null)
                     {
-                        context.Response.StatusCode = StatusCodes.Status400BadRequest;
-                        await context.Response.WriteAsync("Incorrect Product Id");
-                        return;
+                        return Results.BadRequest(new { error = "Incorrect Product Id" });
                     }
                     products.Remove(productFromCollection);
-                    await context.Response.WriteAsync("Product Deleted");
+                    return Results.Ok(new { message = "Product Deleted" });
                 }
             );
 
