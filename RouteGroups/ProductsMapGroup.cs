@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Microsoft.AspNetCore.Mvc;
 using MinimalAPI.Models;
 
 namespace MinimalAPI.RouteGroups
@@ -48,6 +49,26 @@ namespace MinimalAPI.RouteGroups
                     await context.Response.WriteAsync("Product added");
                 }
             );
+
+            // PUT /products/{id}
+            group.MapPut(
+                "/{id:int}",
+                async (HttpContext context, int id, [FromBody] Product product) =>
+                {
+                    var productFromCollection = products
+                        .Where(temp => temp.Id == id)
+                        .FirstOrDefault();
+                    if (productFromCollection == null)
+                    {
+                        context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                        await context.Response.WriteAsync("Incorrect Product Id");
+                        return;
+                    }
+                    productFromCollection.ProductName = product.ProductName;
+                    await context.Response.WriteAsync("Product Updated");
+                }
+            );
+
             return group;
         }
     }
